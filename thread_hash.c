@@ -48,7 +48,6 @@ int total_YESCRYPT_count = 0;
 int total_GOST_YESCRYPT_count = 0;
 int total_BCRYPT_count = 0;
 int total_threads = 0;
-//static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 //functions
 void display_help(void);
@@ -224,7 +223,8 @@ void read_hashed_passwords(const char * filename)
 	}
 
 	// Allocate memory for hashed passwords
-	hashed_passwords = (char **)malloc(num_hashed_passwords * sizeof(char *));
+//	hashed_passwords = (char **)malloc(num_hashed_passwords * sizeof(char *));
+	hashed_passwords = malloc(num_hashed_passwords * sizeof(char *));
 	if (!hashed_passwords) {
 		perror("Error allocating memory for hashed passwords");
 		fclose(file);
@@ -268,7 +268,8 @@ void read_dictionary_words(const char * filename)
 	}
 
 	// Allocate memory for hashed passwords
-	dictionary_words = (char **)malloc(num_dictionary_words * sizeof(char *));
+	//dictionary_words = (char **)malloc(num_dictionary_words * sizeof(char *));
+	dictionary_words = malloc(num_dictionary_words * sizeof(char *));
 	if (!dictionary_words) {
 		perror("Error allocating memory for dictionary words");
 		fclose(file);
@@ -318,7 +319,7 @@ void *crack_passwords(void *tid)
     struct crypt_data data;
 	int i = -1;
 	int j = -1;
-//	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+	static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
     data.initialized = 0;
 
     gettimeofday(&start_time, NULL);
@@ -362,7 +363,7 @@ void *crack_passwords(void *tid)
     gettimeofday(&end_time, NULL);
 	thread_runtime = elapse_time(&start_time, &end_time);
 
-//  pthread_mutex_lock(&lock);
+    pthread_mutex_lock(&lock);
     total_DES_count += DES_count;
     total_NT_count += NT_count;
     total_MD5_count += MD5_count;
@@ -372,7 +373,7 @@ void *crack_passwords(void *tid)
     total_GOST_YESCRYPT_count += GOST_YESCRYPT_count;
     total_BCRYPT_count += BCRYPT_count;
     total_threads++;
-//  pthread_mutex_unlock(&lock);
+    pthread_mutex_unlock(&lock);
 
 	fprintf(stderr, "thread:%3ld %8.2lf sec              DES:%6d               NT:%6d              MD5:%6d           SHA256:%6d           SHA512:%6d         YESCRYPT:%6d    GOST_YESCRYPT:%6d           BCRYPT:%6d  total:%9d\n",
             thread_id, thread_runtime, DES_count, NT_count, MD5_count, SHA256_count, SHA512_count, YESCRYPT_count, GOST_YESCRYPT_count, BCRYPT_count, total);
