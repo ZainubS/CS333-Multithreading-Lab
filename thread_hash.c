@@ -323,36 +323,36 @@ void *crack_passwords(void *arg)
 
     gettimeofday(&start_time, NULL);
 
-	for (i = get_next_row(); i < num_dictionary_words; i = get_next_row()) {
-        for (j = 0; j < num_hashed_passwords; j++) {
-				char *hashed = crypt_r(dictionary_words[i], hashed_passwords[j], &data);
-				if (hashed && strcmp(hashed, hashed_passwords[j]) == 0) {
-					if (hashed_passwords[j][0] != '$') {
+	for (i = get_next_row(); i < num_hashed_passwords; i = get_next_row()) {
+        for (j = 0; j < num_dictionary_words; j++) {
+				char *hashed = crypt_r(dictionary_words[j], hashed_passwords[i], &data);
+				if (hashed && strcmp(hashed, hashed_passwords[i]) == 0) {
+					if (hashed_passwords[i][0] != '$') {
 						DES_count++;
 					} else {
-						switch (hashed_passwords[j][1]) {
+						switch (hashed_passwords[i][1]) {
 							case '3': NT_count++; break;
 							case '1': MD5_count++; break;
 							case '5': SHA256_count++; break;
 							case '6': SHA512_count++; break;
 							case 'y': YESCRYPT_count++; break;
 							case 'g': GOST_YESCRYPT_count++; break;
-							default: if (hashed_passwords[j][2] == 'b') BCRYPT_count++; break;
+							default: if (hashed_passwords[i][2] == 'b') BCRYPT_count++; break;
 						}
 					}
 					if (verbose) {
-						fprintf(stderr, "thread %d: cracking %s\n", thread_id, hashed_passwords[j]);
+						fprintf(stderr, "thread %d: cracking %s\n", thread_id, hashed_passwords[i]);
 					}
 					if (o_file_option) {
 						FILE *outfile = fopen(output_file, "a");
 						if (outfile) {
-							fprintf(outfile, "cracked  %s %s\n", dictionary_words[i], hashed_passwords[j]);
+							fprintf(outfile, "cracked  %s %s\n", dictionary_words[j], hashed_passwords[i]);
 							fclose(outfile);
 						} else {
 							perror("Error opening output file");
 						}
 					} else {
-						printf("cracked  %s %s\n", dictionary_words[i], hashed_passwords[j]);
+						printf("cracked  %s %s\n", dictionary_words[j], hashed_passwords[i]);
 					}
 					total++;
             }
