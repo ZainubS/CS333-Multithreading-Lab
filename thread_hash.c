@@ -54,15 +54,14 @@ int total_threads = 0;
 void display_help(void);
 void read_hashed_passwords(const char * filename);
 void read_dictionary_words(const char * filename);
-void *crack_passwords(void *arg);
-char determine_algorithm(const char *hashed_password);
+void *crack_passwords(void *tid);
 double elapse_time(struct timeval *, struct timeval *);
 int get_next_row(void);
 
-// structure to pass arguments to thread function
+/* structure to pass arguments to thread function
 typedef struct {
     int thread_id;
-} thread_arg_t;
+} thread_arg_t; */
 
 int get_next_row(void) {
 	static int next_row = 0;
@@ -89,7 +88,7 @@ int main(int argc, char *argv[])
 {
 	int opt = -1;
 	hash_algorithm_t algorithm = DES;
-    thread_arg_t *thread_args = NULL;
+    //thread_arg_t *thread_args = NULL;
 	pthread_t *threads = NULL;
 	long tid = 0;
 	FILE *outfile = NULL;
@@ -171,11 +170,11 @@ int main(int argc, char *argv[])
 	gettimeofday(&start_time, NULL);
 
 	threads = malloc(num_threads * sizeof(pthread_t));
-    thread_args = malloc(num_threads * sizeof(thread_arg_t));
+    //thread_args = malloc(num_threads * sizeof(thread_arg_t));
 	for (tid = 0; tid < num_threads; tid++) 
 	{
-        thread_args[tid].thread_id = tid;
-        pthread_create(&threads[tid], NULL, crack_passwords, (void *)&thread_args[tid]);
+        //thread_args[tid].thread_id = tid;
+        pthread_create(&threads[tid], NULL, crack_passwords, (void *)tid);
 	}
     for (tid = 0; tid < num_threads; tid++) 
 	{
@@ -183,7 +182,7 @@ int main(int argc, char *argv[])
     }
 
 	free(threads);
-	free(thread_args);
+//	free(thread_args);
 
 	// time ended for all threads
 	gettimeofday(&end_time, NULL);
@@ -309,11 +308,12 @@ void display_help(void)
 }
 
 // loop through words/passwords and crack
-void *crack_passwords(void *arg)
+void *crack_passwords(void *tid)
 {
     int DES_count = 0, NT_count = 0, MD5_count = 0, SHA256_count = 0, SHA512_count = 0, YESCRYPT_count = 0, GOST_YESCRYPT_count = 0, BCRYPT_count = 0;
-    thread_arg_t *args = (thread_arg_t *)arg;
-    int thread_id = args->thread_id;
+//  thread_arg_t *args = (thread_arg_t *)arg;
+//  int thread_id = args->thread_id;
+    long thread_id = (long)tid;
     int total = 0;
     struct crypt_data data;
 	int i = -1;
@@ -341,7 +341,7 @@ void *crack_passwords(void *arg)
 						}
 					}
 					if (verbose) {
-						fprintf(stderr, "thread %d: cracking %s\n", thread_id, hashed_passwords[i]);
+						fprintf(stderr, "thread%3ld: cracking %s\n", thread_id, hashed_passwords[i]);
 					}
 					if (o_file_option) {
 						FILE *outfile = fopen(output_file, "a");
@@ -362,7 +362,7 @@ void *crack_passwords(void *arg)
     gettimeofday(&end_time, NULL);
 	thread_runtime = elapse_time(&start_time, &end_time);
 
-//    pthread_mutex_lock(&lock);
+//  pthread_mutex_lock(&lock);
     total_DES_count += DES_count;
     total_NT_count += NT_count;
     total_MD5_count += MD5_count;
@@ -372,9 +372,9 @@ void *crack_passwords(void *arg)
     total_GOST_YESCRYPT_count += GOST_YESCRYPT_count;
     total_BCRYPT_count += BCRYPT_count;
     total_threads++;
-//    pthread_mutex_unlock(&lock);
+//  pthread_mutex_unlock(&lock);
 
-	fprintf(stderr, "thread:%3d %8.2lf sec              DES:     %d               NT:     %d              MD5:     %d           SHA256:     %d           SHA512:     %d         YESCRYPT:     %d    GOST_YESCRYPT:     %d           BCRYPT:     %d  total:       %d\n",
+	fprintf(stderr, "thread:%3ld %8.2lf sec              DES:%6d               NT:%6d              MD5:%6d           SHA256:%6d           SHA512:%6d         YESCRYPT:%6d    GOST_YESCRYPT:%6d           BCRYPT:%6d  total:%9d\n",
             thread_id, thread_runtime, DES_count, NT_count, MD5_count, SHA256_count, SHA512_count, YESCRYPT_count, GOST_YESCRYPT_count, BCRYPT_count, total);
 
     pthread_exit(EXIT_SUCCESS);
