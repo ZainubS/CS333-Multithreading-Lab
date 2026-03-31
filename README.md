@@ -24,7 +24,9 @@ make
 ---
 
 ## Usage
-./thread_hash -i <hashes> -d <dictionary> [options]
+```bash
+./thread_hash -i hashes.txt -d words.txt [options]
+```
 
 ### Required
 -i <file> : hashed passwords
@@ -32,6 +34,7 @@ make
 -d <file> : dictionary words
 
 ### Optional
+```
 -o <file> : output file (default stdout)
 
 -t <num> : threads (default 1, max 24)
@@ -41,3 +44,4 @@ make
 -n : apply nice value
 
 -h : help
+```
